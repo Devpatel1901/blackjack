@@ -96,7 +96,7 @@ func StartGame() {
 
 	for i := range len(players) {
 		if hasNaturalBlackjack(players[i].Hand()) {
-			fmt.Printf("%v win!!!", players[i].Name())
+			fmt.Printf("***************%v HAS A NATURAL BLACKJACK, SO %v IS AN IMMEDIATE WINNER***************", players[i].Name(), players[i].Name())
 			os.Exit(0)
 		}
 	}
