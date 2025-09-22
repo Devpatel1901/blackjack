@@ -3,6 +3,7 @@ package blackjack
 import (
 	"fmt"
 	"math/rand"
+	"os"
 
 	"github.com/Devpatel1901/cards/v2"
 )
@@ -71,6 +72,20 @@ func dealInitialCards(players []Player, deck []cards.Card, cardsPerPlayer int) (
 	return players, deck
 }
 
+func hasNaturalBlackjack(hand []cards.Card) bool {
+	if len(hand) != 2 {
+		return false
+	}
+
+	first := hand[0].Rank.Single()
+	second := hand[1].Rank.Single()
+
+	isAceFirst := first == "A" && (second == "10" || second == "J" || second == "Q" || second == "K")
+	isAceSecond := second == "A" && (first == "10" || first == "J" || first == "Q" || first == "K")
+
+	return isAceFirst || isAceSecond
+}
+
 func StartGame() {
 	deckOfCards := cards.FromDecks(cards.NewDeck(cards.Shuffle), cards.NewDeck(cards.Shuffle))
 	players := initializePlayers(4)
@@ -78,6 +93,13 @@ func StartGame() {
 	var card cards.Card
 	var err error
 	players, deckOfCards = dealInitialCards(players, deckOfCards, 2)
+
+	for i := range len(players) {
+		if hasNaturalBlackjack(players[i].Hand()) {
+			fmt.Printf("%v win!!!", players[i].Name())
+			os.Exit(0)
+		}
+	}
 
 	setDealerCardVisibility(players, true)
 
