@@ -7,10 +7,14 @@ import (
 	"github.com/Devpatel1901/cards/v2"
 )
 
-func initializePlayers() []Player {
+func initializePlayers(numberOfPlayers int) []Player {
 	var players []Player
 
-	players = append(players, Player{name: "PLAYER1", isDealer: false}, Player{name: "DEALER", isDealer: true})
+	for i := range numberOfPlayers {
+		players = append(players, Player{name: fmt.Sprintf("PLAYER%d", i+1), isDealer: false})
+	}
+
+	players = append(players, Player{name: "DEALER", isDealer: true})
 
 	return players
 }
@@ -29,36 +33,53 @@ func showPlayerCards(players []Player) {
 	}
 }
 
-func hideOneCardFromDealerHands(players []Player) {
+func setDealerCardVisibility(players []Player, hidden bool) {
 	for i := range players {
 		if players[i].IsDealer() {
 			hands := players[i].Hand()
-			idx := rand.Intn(len(hands))
 
-			hands[idx].Hidden = true
+			if hidden {
+				idx := rand.Intn(len(hands))
+				hands[idx].Hidden = true
+				return
+			}
+
+			for j := range hands {
+				if hands[j].Hidden {
+					hands[j].Hidden = false
+					return
+				}
+			}
 		}
 	}
 }
 
-func StartGame() {
-	deckOfCards := cards.FromDecks(cards.NewDeck(cards.Shuffle), cards.NewDeck(cards.Shuffle))
-	fmt.Println(len(deckOfCards))
-	players := initializePlayers()
-
+func dealInitialCards(players []Player, deck []cards.Card, cardsPerPlayer int) ([]Player, []cards.Card) {
 	var card cards.Card
 	var err error
-	for j := 0; j < 2; j++ {
+
+	for j := 0; j < cardsPerPlayer; j++ {
 		for i := range players {
-			card, deckOfCards, err = draw(deckOfCards)
+			card, deck, err = draw(deck)
 			if err != nil {
 				fmt.Println("No more cards left in deck!")
-				break
+				return players, deck
 			}
 			players[i].AddCard(card)
 		}
 	}
+	return players, deck
+}
 
-	hideOneCardFromDealerHands(players)
+func StartGame() {
+	deckOfCards := cards.FromDecks(cards.NewDeck(cards.Shuffle), cards.NewDeck(cards.Shuffle))
+	players := initializePlayers(4)
+
+	var card cards.Card
+	var err error
+	players, deckOfCards = dealInitialCards(players, deckOfCards, 2)
+
+	setDealerCardVisibility(players, true)
 
 	var input string
 
@@ -91,7 +112,15 @@ func StartGame() {
 			break
 		}
 		players[len(players)-1].AddCard(card)
+
+		dealerScore, isSoftScore = players[len(players)-1].Score()
 	}
+
+	setDealerCardVisibility(players, true)
+
+	showPlayerCards(players)
+
+	fmt.Printf("--------------- MATCH RESULT ---------------\n")
 
 	var maxScore int
 	var winner string
