@@ -7,18 +7,13 @@ import (
 )
 
 type Player struct {
-	name     string
-	isDealer bool
-	hand     []cards.Card
-	bet      int
+	name string
+	hand []cards.Card
+	bet  int
 }
 
 func (p Player) Name() string {
 	return p.name
-}
-
-func (p Player) IsDealer() bool {
-	return p.isDealer
 }
 
 func (p Player) Show() {
