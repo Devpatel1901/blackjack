@@ -20,6 +20,30 @@ func initializePlayers(numberOfPlayers int) []Player {
 	return players
 }
 
+func placeBets(players []Player, minBet int, maxBet int) int {
+	totalBetAmount := 0
+	for i := range players {
+		if !players[i].isDealer {
+			input := 0
+
+			for {
+				fmt.Printf("Table minimum allowed bet is: $%d and maximum allowed bet is: $%d. Enter your bet %v: $", minBet, maxBet, players[i].Name())
+				fmt.Scanf("%d\n", &input)
+
+				if input < minBet || input > maxBet {
+					fmt.Println("Try Again, Bet amount is invalid!!!")
+					continue
+				} else {
+					totalBetAmount += input
+					players[i].IncreaseBetByAmount(input)
+					break
+				}
+			}
+		}
+	}
+	return totalBetAmount
+}
+
 func draw(deck []cards.Card) (cards.Card, []cards.Card, error) {
 	if len(deck) == 0 {
 		return cards.Card{}, deck, fmt.Errorf("deck is empty")
@@ -89,6 +113,12 @@ func hasNaturalBlackjack(hand []cards.Card) bool {
 func StartGame() {
 	deckOfCards := cards.FromDecks(cards.NewDeck(cards.Shuffle), cards.NewDeck(cards.Shuffle))
 	players := initializePlayers(4)
+	minBet := 10
+	maxBet := 1000
+
+	totalBetAmount := placeBets(players, minBet, maxBet)
+
+	fmt.Printf("Total Bet Amount: $%d\n", totalBetAmount)
 
 	var card cards.Card
 	var err error
@@ -96,7 +126,8 @@ func StartGame() {
 
 	for i := range len(players) {
 		if hasNaturalBlackjack(players[i].Hand()) {
-			fmt.Printf("***************%v HAS A NATURAL BLACKJACK, SO %v IS AN IMMEDIATE WINNER***************", players[i].Name(), players[i].Name())
+			fmt.Printf("***************%v HAS A NATURAL BLACKJACK, SO %v IS AN IMMEDIATE WINNER***************\n", players[i].Name(), players[i].Name())
+			fmt.Printf("Total Winning Amount: %d\n", totalBetAmount)
 			os.Exit(0)
 		}
 	}
@@ -109,11 +140,33 @@ func StartGame() {
 		for input != "s" {
 			showPlayerCards(players)
 
-			fmt.Printf("What will you do %v? (h)it, (s)tand: ", players[i].Name())
+			fmt.Printf("What will you do %v? (h)it, (s)tand, (d)ouble down: ", players[i].Name())
 			fmt.Scanf("%s\n", &input)
 
 			switch input {
 			case "h":
+				card, deckOfCards, err = draw(deckOfCards)
+				if err != nil {
+					fmt.Println("No more cards left in deck!")
+					break
+				}
+				players[i].AddCard(card)
+			case "d":
+				amount := 0
+				for {
+					fmt.Printf("Table minimum allowed bet is: $%d and maximum allowed bet is: $%d. Enter your bet %v: $", minBet, maxBet, players[i].Name())
+					fmt.Scanf("%d\n", &amount)
+
+					if amount < minBet || amount > maxBet {
+						fmt.Println("Try Again, Bet amount is invalid!!!")
+						continue
+					} else {
+						totalBetAmount += amount
+						players[i].IncreaseBetByAmount(amount)
+						break
+					}
+				}
+
 				card, deckOfCards, err = draw(deckOfCards)
 				if err != nil {
 					fmt.Println("No more cards left in deck!")
@@ -138,7 +191,7 @@ func StartGame() {
 		dealerScore, isSoftScore = players[len(players)-1].Score()
 	}
 
-	setDealerCardVisibility(players, true)
+	setDealerCardVisibility(players, false)
 
 	showPlayerCards(players)
 
@@ -161,5 +214,6 @@ func StartGame() {
 		}
 	}
 
-	fmt.Printf("%v win!!!", winner)
+	fmt.Printf("%v win!!!\n", winner)
+	fmt.Printf("Total Winning Amount: %d\n", totalBetAmount)
 }

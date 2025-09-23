@@ -10,6 +10,7 @@ type Player struct {
 	name     string
 	isDealer bool
 	hand     []cards.Card
+	bet      int
 }
 
 func (p Player) Name() string {
@@ -28,10 +29,6 @@ func (p Player) Show() {
 
 func (p Player) Hand() []cards.Card {
 	return p.hand
-}
-
-func (p *Player) AddCard(cardsToAdd ...cards.Card) {
-	p.hand = append(p.hand, cardsToAdd...)
 }
 
 func (p Player) Score() (int, bool) {
@@ -57,4 +54,12 @@ func (p Player) Score() (int, bool) {
 	}
 
 	return total, softScore
+}
+
+func (p *Player) AddCard(cardsToAdd ...cards.Card) {
+	p.hand = append(p.hand, cardsToAdd...)
+}
+
+func (p *Player) IncreaseBetByAmount(amount int) {
+	p.bet += amount
 }
