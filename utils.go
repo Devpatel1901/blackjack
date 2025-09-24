@@ -6,9 +6,25 @@ import (
 	"github.com/Devpatel1901/cards/v2"
 )
 
+func printWelcomeBanner() {
+	fmt.Println("******************************************************")
+	fmt.Println("*                                                    *")
+	fmt.Println("*            🃏 WELCOME TO CLI BLACKJACK 🃏          *")
+	fmt.Println("*                                                    *")
+	fmt.Println("******************************************************")
+	fmt.Println("*  Rules:                                            *")
+	fmt.Println("*  1. Try to get as close to 21 as possible.         *")
+	fmt.Println("*  2. Dealer must hit on 16 and stand on 17.         *")
+	fmt.Println("*  3. Natural Blackjack pays immediately!            *")
+	fmt.Println("*                                                    *")
+	fmt.Println("*  Developed by Dev Patel                            *")
+	fmt.Println("******************************************************")
+	fmt.Println()
+}
+
 func showPlayerCards(players ...Player) {
 	for _, p := range players {
-		fmt.Printf("-------------- %v CARDS --------------\n", p.Name())
+		fmt.Printf("************** %v CARDS **************\n", p.Name())
 		p.Show()
 	}
 }
@@ -77,23 +93,28 @@ func revealDealerFirstHiddenCard(gs *GameState) {
 
 func placeBets(players []Player, minBet int, maxBet int) int {
 	totalBetAmount := 0
+	fmt.Println("💰 Time to place your bets!")
+	fmt.Println("******************************************************")
+
 	for i := range players {
 		input := 0
 
 		for {
-			fmt.Printf("Table minimum allowed bet is: $%d and maximum allowed bet is: $%d. Enter your bet %v: $", minBet, maxBet, players[i].Name())
+			fmt.Printf("[%v] Enter your bet (min $%d / max $%d): $", players[i].Name(), minBet, maxBet)
 			fmt.Scanf("%d\n", &input)
 
 			if input < minBet || input > maxBet {
-				fmt.Println("Try Again, Bet amount is invalid!!!")
+				fmt.Println("❌ Invalid bet. Please try again.")
 				continue
 			} else {
 				totalBetAmount += input
 				players[i].IncreaseBetByAmount(input)
+				fmt.Printf("✅ %v bet $%d\n", players[i].Name(), input)
 				break
 			}
 		}
 	}
+	fmt.Printf("💵 Total bets placed: $%d\n\n", totalBetAmount)
 	return totalBetAmount
 }
 
@@ -115,11 +136,11 @@ func playPlayerTurn(gs GameState) {
 	var input string
 
 	for i := range len(gs.Players) {
+		fmt.Printf("🎮 %v's Turn begins!\n", gs.Players[i].Name())
 		for input != "s" {
-			showPlayerCards(gs.Players...)
-			showPlayerCards(gs.Dealer)
+			showPlayerCards(gs.Players[i], gs.Dealer)
 
-			fmt.Printf("What will you do %v? (h)it, (s)tand, (d)ouble down: ", gs.Players[i].Name())
+			fmt.Printf("👉 %v, what will you do? (h)it, (s)tand, (d)ouble down: ", gs.Players[i].Name())
 			fmt.Scanf("%s\n", &input)
 
 			var card cards.Card
@@ -129,32 +150,36 @@ func playPlayerTurn(gs GameState) {
 			case "h":
 				card, gs.Deck, err = draw(gs.Deck)
 				if err != nil {
-					fmt.Println("No more cards left in deck!")
+					fmt.Println("❌ Deck is empty!")
 					break
 				}
 				gs.Players[i].AddCard(card)
+				fmt.Printf("🃏 %v hits and draws a card!\n", gs.Players[i].Name())
+
 			case "d":
 				amount := 0
 				for {
-					fmt.Printf("Table minimum allowed bet is: $%d and maximum allowed bet is: $%d. Enter your bet %v: $", gs.MinTableBet, gs.MaxTableBet, gs.Players[i].Name())
+					fmt.Printf("💵 %v, enter your additional bet (min $%d / max $%d): $", gs.Players[i].Name(), gs.MinTableBet, gs.MaxTableBet)
 					fmt.Scanf("%d\n", &amount)
 
 					if amount < gs.MinTableBet || amount > gs.MaxTableBet {
-						fmt.Println("Try Again, Bet amount is invalid!!!")
+						fmt.Println("❌ Invalid bet. Try again.")
 						continue
 					} else {
 						gs.TotalBet += amount
 						gs.Players[i].IncreaseBetByAmount(amount)
+						fmt.Printf("✅ %v doubled down with $%d!\n", gs.Players[i].Name(), amount)
 						break
 					}
 				}
-
 				card, gs.Deck, err = draw(gs.Deck)
 				if err != nil {
-					fmt.Println("No more cards left in deck!")
+					fmt.Println("❌ No more cards left!")
 					break
 				}
 				gs.Players[i].AddCard(card)
+				fmt.Printf("🃏 %v draws one final card.\n", gs.Players[i].Name())
+				input = "s"
 			}
 		}
 		input = ""
@@ -182,9 +207,12 @@ func playDealerTurn(gs GameState) {
 func endGameAndDisplayStats(gs GameState) {
 	revealDealerFirstHiddenCard(&gs)
 
+	fmt.Println("\n======================================================")
+	fmt.Println("               🎲 FINAL RESULTS 🎲")
+	fmt.Println("======================================================")
+
 	showPlayerCards(gs.Players...)
 	showPlayerCards(gs.Dealer)
-	fmt.Printf("--------------- MATCH RESULT ---------------\n")
 
 	var maxScore int
 	var winner string
@@ -193,7 +221,7 @@ func endGameAndDisplayStats(gs GameState) {
 		pScore, _ := gs.Players[i].Score()
 
 		if pScore > 21 {
-			fmt.Printf("%v busted\n", gs.Players[i].Name())
+			fmt.Printf("💥 %v busted with %d!\n", gs.Players[i].Name(), pScore)
 			continue
 		}
 
@@ -203,6 +231,14 @@ func endGameAndDisplayStats(gs GameState) {
 		}
 	}
 
-	fmt.Printf("%v win!!!\n", winner)
-	fmt.Printf("Total Winning Amount: %d\n", gs.TotalBet)
+	if winner == "" {
+		fmt.Println("🏦 Dealer wins! All players busted.")
+	} else {
+		fmt.Printf("🏆 %v wins with %d!\n", winner, maxScore)
+		fmt.Printf("💰 Total Winning Amount: $%d\n", gs.TotalBet)
+	}
+
+	fmt.Println("======================================================")
+	fmt.Println("        🎉 Thanks for playing CLI Blackjack! 🎉")
+	fmt.Println("======================================================")
 }

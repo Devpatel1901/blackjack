@@ -14,6 +14,7 @@ type GameState struct {
 }
 
 func CreateNewGame(numberOfPlayers int, minTableBet int, maxTableBet int) GameState {
+	printWelcomeBanner()
 	deck := cards.FromDecks(
 		cards.NewDeck(cards.Shuffle),
 		cards.NewDeck(cards.Shuffle),

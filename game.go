@@ -6,6 +6,7 @@ import (
 )
 
 func StartGame() {
+
 	gs := CreateNewGame(4, 10, 1000)
 
 	for i := range len(gs.Players) {
