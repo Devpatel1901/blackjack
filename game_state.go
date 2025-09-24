@@ -35,5 +35,6 @@ func CreateNewGame(numberOfPlayers int, minTableBet int, maxTableBet int) GameSt
 		MaxTableBet: maxTableBet,
 		TotalBet:    totalBet,
 	}
+
 	return gs
 }
