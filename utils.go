@@ -2,6 +2,7 @@ package blackjack
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/Devpatel1901/cards/v2"
 )
@@ -87,6 +88,20 @@ func revealDealerFirstHiddenCard(gs *GameState) {
 		if gs.Dealer.hand[i].Hidden {
 			gs.Dealer.hand[i].Hidden = false
 			break
+		}
+	}
+}
+
+func checkForNaturalBlackJack(gs GameState) {
+	for i := range len(gs.Players) {
+		if hasNaturalBlackjack(gs.Players[i].Hand()) {
+			revealDealerFirstHiddenCard(&gs)
+
+			showPlayerCards(gs.Players...)
+			showPlayerCards(gs.Dealer)
+			fmt.Printf("***************%v HAS A NATURAL BLACKJACK, SO %v IS AN IMMEDIATE WINNER***************\n", gs.Players[i].Name(), gs.Players[i].Name())
+			fmt.Printf("Total Winning Amount: %d\n", gs.TotalBet)
+			os.Exit(0)
 		}
 	}
 }
